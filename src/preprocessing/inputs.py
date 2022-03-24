@@ -4,9 +4,14 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import RegexpTokenizer
 
 import pandas as pd
+import nltk
 
 
 def df_cleanup(df: pd.DataFrame, lemmatize=True, lower=True):
+    nltk.download('stopwords', quiet=True)
+    nltk.download('wordnet', quiet=True)
+    nltk.download('omw-1.4', quiet=True)
+
     reg_exp_tokenizer = RegexpTokenizer(r"\w+")
     word_lemmatizer = WordNetLemmatizer()
 
