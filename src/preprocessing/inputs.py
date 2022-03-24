@@ -53,7 +53,7 @@ def classifier_input(df: pd.DataFrame, characters: List[str], target: str = "Add
         ('All right!', 'Kyle')
     ]
     """
-    return [(i["Line"], i[target]) for _, i in df[df["Character"].isin(characters)].iterrows()]
+    return [(i["Line"], i[target] if i[target] in characters else "Noname") for _, i in df[df["Character"].isin(characters)].iterrows()]
 
 
 def generator_input(df: pd.DataFrame, characters: List[str], n_context: int = 1):
@@ -79,7 +79,9 @@ def generator_input(df: pd.DataFrame, characters: List[str], n_context: int = 1)
     }
     """
     res = {}
-    contexts = [df[["Line", "Character"]].shift(i) for i in range(1, n_context + 1)]
+    contexts = [df[["Line", "Character"]].shift(i).copy() for i in range(1, n_context + 1)]
+    for context_df in contexts:
+        context_df.loc[~context_df["Character"].isin(characters), "Character"] = "Noname"
     for ch in characters:
         mask = df["Character"] == ch
         res[ch] = list(zip(df[mask]["Line"].tolist(), *[c[mask].values.tolist() for c in contexts]))
@@ -90,11 +92,11 @@ if __name__ == "__main__":
     # Example of code usage
     df = pd.read_csv(Path("../../SouthParkData/All-seasons.csv"))
     df_cleanup(df)
-    gen_input = generator_input(df, ["Cartman"], n_context=2)
+    gen_input = generator_input(df, ["Cartman", "Kyle", "Stan"], n_context=2)
 
     print(gen_input["Cartman"][0])
     print(gen_input["Cartman"][1])
 
-    class_input = classifier_input(df, ["Cartman"])
+    class_input = classifier_input(df, ["Cartman", "Stan", "Kyle"])
 
     print(class_input[:3])
