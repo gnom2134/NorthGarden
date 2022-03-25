@@ -39,7 +39,7 @@ def df_cleanup(df: pd.DataFrame, lemmatize=True, lower=True):
     df["Addressee"] = df["Character"].shift(periods=-1)
 
 
-def classifier_input(df: pd.DataFrame, characters: List[str], target: str = "Addressee") -> List[Tuple[str, str]]:
+def classifier_input(df: pd.DataFrame, characters: List[str], target: str = "Addressee", drop_noname=False) -> List[Tuple[str, str]]:
     """
     Returns list of the following format for filtered characters
     [
@@ -53,7 +53,10 @@ def classifier_input(df: pd.DataFrame, characters: List[str], target: str = "Add
         ('All right!', 'Kyle')
     ]
     """
-    return [(i["Line"], i[target] if i[target] in characters else "Noname") for _, i in df[df["Character"].isin(characters)].iterrows()]
+    if not drop_noname:
+        return [(i["Line"], i[target] if i[target] in characters else "Noname") for _, i in df[df["Character"].isin(characters)].iterrows()]
+    else:
+        return [(i["Line"], i[target]) for _, i in df[df["Character"].isin(characters) & df[target].isin(characters)].iterrows()]
 
 
 def generator_input(df: pd.DataFrame, characters: List[str], n_context: int = 1):
