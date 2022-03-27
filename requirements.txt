@@ -1,2 +1,5 @@
 pandas~=1.4.1
 nltk~=3.7
+numpy~=1.22.3
+transformers~=4.17.0
+onnxruntime~=1.11.0
