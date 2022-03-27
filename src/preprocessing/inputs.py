@@ -7,6 +7,23 @@ import pandas as pd
 import nltk
 
 
+def load_nltk():
+    nltk.download('stopwords', quiet=True)
+    nltk.download('wordnet', quiet=True)
+    nltk.download('omw-1.4', quiet=True)
+
+
+def query_cleanup(q: str, lemmatize=True, lower=True) -> str:
+    reg_exp_tokenizer = RegexpTokenizer(r"\w+")
+    word_lemmatizer = WordNetLemmatizer()
+    if lower:
+        q = q.lower()
+    if lemmatize:
+        return " ".join(word_lemmatizer.lemmatize(word) for word in reg_exp_tokenizer.tokenize(q))
+    else:
+        return " ".join(word for word in reg_exp_tokenizer.tokenize(q))
+
+
 def df_cleanup(df: pd.DataFrame, lemmatize=True, lower=True):
     nltk.download('stopwords', quiet=True)
     nltk.download('wordnet', quiet=True)
