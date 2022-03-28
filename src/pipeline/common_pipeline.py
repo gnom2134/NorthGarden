@@ -3,6 +3,7 @@ from pathlib import Path
 from src.models.classifiers import ClassifierStump, BertClassifier
 from src.models.generators import GeneratorStump, DialoGptGenerator
 from src.preprocessing.inputs import load_nltk, query_cleanup
+import numpy as np
 
 
 class Pipeline:
@@ -47,10 +48,15 @@ class Pipeline:
     def process_query(self, q: str, lemmatize: bool = False, lower: bool = False) -> str:
         result = query_cleanup(q, lemmatize, lower)
         display_result = "You: " + q
+        last_speaker = None
         for i in range(self.its):
             speaker = self.classifier(result)
             old_result_len = len(result)
+            if speaker == last_speaker:
+                # select random speaker in case speaker repeats
+                speaker = np.random.randint(0, len(self.char2id) - 1)
             result = self.generators[speaker](result)
+            last_speaker = speaker
             display_result = display_result + f"\n{self.id2char[speaker]}: " + result[old_result_len:]
         return display_result
 
@@ -62,20 +68,20 @@ class Pipeline:
 
 
 if __name__ == "__main__":
-    text = "How is it that you so jewish?"
+    text = "How is it that you so fat?"
     pipeline = Pipeline(
         ["Cartman", "Kyle", "Stan"],
         cl_model_path="./weights/bert_model.onnx",
         cl_model_name="distilbert-base-cased",
         gen_model_paths=[
-            "./weights/stan_model_torch",
-            "./weights/stan_model_torch",
-            "./weights/stan_model_torch",
+            "./weights/cartman_model_torch",
+            "./weights/kyle_model_torch",
+            "./weights/stan2_model_torch",
         ],
         gen_model_names=["microsoft/DialoGPT-small", "microsoft/DialoGPT-small", "microsoft/DialoGPT-small"],
         gen_type="dialogpt",
         cl_type="distilbert",
-        iterations=2
+        iterations=3
     )
 
     print(pipeline.process_query(text))
