@@ -58,7 +58,9 @@ class Pipeline:
             old_result_len = len(result)
             if speaker == last_speaker:
                 # select random speaker in case speaker repeats
-                speaker = np.random.randint(0, len(self.char2id) - 1)
+                choices = set(range(len(self.char2id)))
+                choices.discard(speaker)
+                speaker = np.random.choice(list(choices)    )
             result = self.generators[speaker](result)
             last_speaker = speaker
             display_result = display_result + f"\n{self.id2char[speaker]}: " + result[old_result_len:]
