@@ -3,3 +3,5 @@ nltk~=3.7
 numpy~=1.22.3
 transformers~=4.17.0
 onnxruntime~=1.11.0
+python-telegram-bot~=13.4.1
+python-dotenv~=0.20.0

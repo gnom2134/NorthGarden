@@ -1,7 +1,7 @@
 from typing import List, Union
 from pathlib import Path
 from src.models.classifiers import ClassifierStump, BertClassifier
-from src.models.generators import GeneratorStump
+from src.models.generators import GeneratorStump, Gpt2Generator
 from src.preprocessing.inputs import load_nltk, query_cleanup
 
 
@@ -21,6 +21,7 @@ class Pipeline:
         self.generators = None
         self.classifier = None
         self.its = iterations
+        self.id2char = {i: v for i, v in enumerate(characters)}
         self.char2id = {v: i for i, v in enumerate(characters)}
 
         load_nltk()
@@ -36,17 +37,24 @@ class Pipeline:
 
         if gen_type == "stump":
             self.generators = [GeneratorStump(x) for x in characters]
+        elif gen_type == "gpt2":
+            if gen_model_paths is None or gen_model_names is None:
+                raise AttributeError("Pipeline needs path to models weights and correct name to download tokenizer")
+            self.generators = [Gpt2Generator(Path(x), y) for x, y in zip(gen_model_paths, gen_model_names)]
         else:
             raise AttributeError("Wrong generator type")
 
-    def process_query(self, q: str, lemmatize: bool = True, lower: bool = True) -> str:
+    def process_query(self, q: str, lemmatize: bool = False, lower: bool = False) -> str:
         result = query_cleanup(q, lemmatize, lower)
+        display_result = "You: " + q
         for i in range(self.its):
             speaker = self.classifier(result)
+            old_result_len = len(result)
             result = self.generators[speaker](result)
-        return result
+            display_result = display_result + f"\n{self.id2char[speaker]}: " + result[old_result_len:]
+        return display_result
 
-    def character_reply(self, q: str, character: Union[str, int], lemmatize: bool = True, lower: bool = True) -> str:
+    def character_reply(self, q: str, character: Union[str, int], lemmatize: bool = False, lower: bool = False) -> str:
         if isinstance(character, str):
             return self.generators[self.char2id[character]](query_cleanup(q, lemmatize, lower))
         elif isinstance(character, int):
@@ -54,12 +62,20 @@ class Pipeline:
 
 
 if __name__ == "__main__":
-    text = "You so fat, how can you eat all this stuff"
+    text = "You so fat, how can you eat all this stuff?"
     pipeline = Pipeline(
-        ["Kyle", "Stan", "Cartman"],
-        model_path="./bert_model.onnx",
-        model_name="distilbert-base-cased",
+        ["Cartman", "Kyle", "Stan"],
+        cl_model_path="./weights/bert_model.onnx",
+        cl_model_name="distilbert-base-cased",
+        gen_model_paths=[
+            "./weights/Cartman_generator.onnx",
+            "./weights/Cartman_generator.onnx",
+            "./weights/Cartman_generator.onnx",
+        ],
+        gen_model_names=["microsoft/DialoGPT-small", "microsoft/DialoGPT-small", "microsoft/DialoGPT-small"],
+        gen_type="gpt2",
         cl_type="distilbert",
+        iterations=2
     )
 
     print(pipeline.process_query(text))
