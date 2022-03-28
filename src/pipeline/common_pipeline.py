@@ -50,25 +50,24 @@ class Pipeline:
             raise AttributeError("Wrong generator type")
 
     def process_query(self, q: str, lemmatize: bool = False, lower: bool = False) -> str:
-        result = query_cleanup(q, lemmatize, lower)
+        result = [query_cleanup(q, lemmatize, lower)]
         display_result = "You: " + q
         last_speaker = None
         for i in range(self.its):
-            speaker = self.classifier(result)
-            old_result_len = len(result)
+            speaker = self.classifier(result[-1])
             if speaker == last_speaker:
                 # select random speaker in case speaker repeats
                 speaker = np.random.randint(0, len(self.char2id) - 1)
             result = self.generators[speaker](result)
             last_speaker = speaker
-            display_result = display_result + f"\n{self.id2char[speaker]}: " + result[old_result_len:]
+            display_result = display_result + f"\n{self.id2char[speaker]}: " + result[-1]
         return display_result
 
     def character_reply(self, q: str, character: Union[str, int], lemmatize: bool = False, lower: bool = False) -> str:
         if isinstance(character, str):
-            return self.generators[self.char2id[character]](query_cleanup(q, lemmatize, lower))
+            return self.generators[self.char2id[character]]([query_cleanup(q, lemmatize, lower)])[-1]
         elif isinstance(character, int):
-            return self.generators[character](query_cleanup(q, lemmatize, lower))
+            return self.generators[character]([query_cleanup(q, lemmatize, lower)])[-1]
 
 
 if __name__ == "__main__":
