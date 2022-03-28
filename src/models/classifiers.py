@@ -24,7 +24,7 @@ class BertClassifier:
         inputs["input_ids"] = inputs["input_ids"].astype(np.int64)
         inputs["attention_mask"] = inputs["attention_mask"].astype(np.int64)
         outputs = self.session.run(output_names=None, input_feed=dict(inputs))
-        return np.argmax(outputs)
+        return np.argmax(outputs)[0]
 
 
 class TfIdfClassifier:
