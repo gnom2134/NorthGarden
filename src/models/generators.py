@@ -20,17 +20,6 @@ class DialoGptGenerator:
         self.context_n = context_n
 
     def __call__(self, text: List[str]) -> List[str]:
-        input1 = " ".join(text[:-self.context_n])
-        input2 = f" {self.tokenizer.eos_token} ".join(text[-self.context_n:])
-        inputs = self.tokenizer.encode(" ".join([input1, input2, self.tokenizer.eos_token]), return_tensors="pt")
-        outputs = self.model.generate(
-            inputs,
-            max_length=200,
-            pad_token_id=self.tokenizer.eos_token_id,
-            do_sample=True,
-            top_k=100,
-            top_p=0.7,
-            temperature=0.8,
-            no_repeat_ngram_size=3,
-        )
+        inputs = self.tokenizer.eos_token.join(text[-self.context_n:]) + self.tokenizer.eos_token
+        outputs = self.model.generate(inputs, max_length=200, pad_token_id=self.tokenizer.eos_token_id)
         return text + [self.tokenizer.decode(outputs[:, inputs.shape[-1]:][0], skip_special_tokens=True)]
