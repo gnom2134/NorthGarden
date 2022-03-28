@@ -1,6 +1,6 @@
 from typing import List, Union
 from pathlib import Path
-from src.models.classifiers import ClassifierStump, BertClassifier
+from src.models.classifiers import ClassifierStump, BertClassifier, TfIdfClassifier
 from src.models.generators import GeneratorStump, DialoGptGenerator
 from src.preprocessing.inputs import load_nltk, query_cleanup
 import numpy as np
@@ -33,6 +33,10 @@ class Pipeline:
             if cl_model_path is None or cl_model_name is None:
                 raise AttributeError("Pipeline needs path to models weights and correct name to download tokenizer")
             self.classifier = BertClassifier(Path(cl_model_path), cl_model_name)
+        elif cl_type == "tfidf":
+            if cl_model_path is None:
+                raise AttributeError("Pipeline needs path to models weights")
+            self.classifier = TfIdfClassifier(Path(cl_model_path))
         else:
             raise AttributeError("Wrong classifier type")
 
@@ -71,7 +75,7 @@ if __name__ == "__main__":
     text = "How is it that you so fat?"
     pipeline = Pipeline(
         ["Cartman", "Kyle", "Stan"],
-        cl_model_path="./weights/bert_model.onnx",
+        cl_model_path="./weights/tfidf_classifier.pkl",
         cl_model_name="distilbert-base-cased",
         gen_model_paths=[
             "./weights/cartman_model_torch",
@@ -80,7 +84,7 @@ if __name__ == "__main__":
         ],
         gen_model_names=["microsoft/DialoGPT-small", "microsoft/DialoGPT-small", "microsoft/DialoGPT-small"],
         gen_type="dialogpt",
-        cl_type="distilbert",
+        cl_type="tfidf",
         iterations=3
     )
 

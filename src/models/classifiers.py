@@ -3,6 +3,7 @@ from pathlib import Path
 from transformers import AutoTokenizer
 from onnxruntime import InferenceSession
 import numpy as np
+import joblib
 
 
 class ClassifierStump:
@@ -24,3 +25,11 @@ class BertClassifier:
         inputs["attention_mask"] = inputs["attention_mask"].astype(np.int64)
         outputs = self.session.run(output_names=None, input_feed=dict(inputs))
         return np.argmax(outputs)
+
+
+class TfIdfClassifier:
+    def __init__(self, model_weights_path: Path):
+        self.pipeline = joblib.load(model_weights_path)
+
+    def __call__(self, text: str) -> int:
+        return self.pipeline.predict([text])[0]
