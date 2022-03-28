@@ -1,7 +1,7 @@
 from typing import List, Union
 from pathlib import Path
 from src.models.classifiers import ClassifierStump, BertClassifier
-from src.models.generators import GeneratorStump, Gpt2Generator
+from src.models.generators import GeneratorStump, DialoGptGenerator
 from src.preprocessing.inputs import load_nltk, query_cleanup
 
 
@@ -37,10 +37,10 @@ class Pipeline:
 
         if gen_type == "stump":
             self.generators = [GeneratorStump(x) for x in characters]
-        elif gen_type == "gpt2":
+        elif gen_type == "dialogpt":
             if gen_model_paths is None or gen_model_names is None:
                 raise AttributeError("Pipeline needs path to models weights and correct name to download tokenizer")
-            self.generators = [Gpt2Generator(Path(x), y) for x, y in zip(gen_model_paths, gen_model_names)]
+            self.generators = [DialoGptGenerator(Path(x), y) for x, y in zip(gen_model_paths, gen_model_names)]
         else:
             raise AttributeError("Wrong generator type")
 
@@ -62,18 +62,18 @@ class Pipeline:
 
 
 if __name__ == "__main__":
-    text = "You so fat, how can you eat all this stuff?"
+    text = "How is it that you so jewish?"
     pipeline = Pipeline(
         ["Cartman", "Kyle", "Stan"],
         cl_model_path="./weights/bert_model.onnx",
         cl_model_name="distilbert-base-cased",
         gen_model_paths=[
-            "./weights/Cartman_generator.onnx",
-            "./weights/Cartman_generator.onnx",
-            "./weights/Cartman_generator.onnx",
+            "./weights/stan_model_torch",
+            "./weights/stan_model_torch",
+            "./weights/stan_model_torch",
         ],
         gen_model_names=["microsoft/DialoGPT-small", "microsoft/DialoGPT-small", "microsoft/DialoGPT-small"],
-        gen_type="gpt2",
+        gen_type="dialogpt",
         cl_type="distilbert",
         iterations=2
     )
